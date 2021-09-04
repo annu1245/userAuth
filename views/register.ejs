@@ -5,21 +5,20 @@
 </head>
 <body>
     <div class="containe col-6 mx-auto mt-5">
-        <div class="alert alert-danger" id="errorMessage" role="alert">
-            user already exists kindly login please..
-          </div>
+        <div class="alert alert-danger" id="errorMessage" role="alert"></div>
+         
         <form id="myForm">
             <div class="mb-3">
                <label  class="form-label">Name </label>
-               <input type="text" class="form-control" name="uname"/>
+               <input type="text" class="form-control" name="name" required/> 
             </div>
             <div class="mb-3">
               <label  class="form-label">Email address</label>
-              <input type="email" class="form-control" name="uemailId"/>
+              <input type="email" class="form-control" name="emailId" required/>
             </div>
             <div class="mb-3">
               <label class="form-label">Password</label>
-              <input type="password" class="form-control" name="upassword"/>
+              <input type="password" class="form-control" name="password" required/>
             </div>
             <input type="submit" class="btn btn-primary" value="submit"/>
           </form>
@@ -43,28 +42,37 @@
              type: "POST",
              url: "/user/register",
              data: dataa,
+             dataType : "json",
              beforeSend: function(){
               $('#loader').show();
              },
             success: function(res){
               $('#loader').hide();
-              console.log(res.status);
-              if (res.status == 1){
+              if (res.state == 1){
+                $("#errorMessage").text("user already exists kindly login please..")
                 $("#errorMessage").show();
                 setTimeout(function(){
                   $('#errorMessage').fadeOut();
-              },2000);
+              },3000);
               }
-              else{
+              else if (res.state == 0){
+                $("#errorMessage").text("Please fill all the fields")
+                $("#errorMessage").show();
+                setTimeout(function(){
+                  $('#errorMessage').fadeOut();
+              },3000);
+              }
+              else if (res.state == 2){ 
                 Swal.fire(
                   'well donee..!',
                   'now check mail and verify yourself',
                   'success'
-                )
+                ).then(()=> window.location.href = "/login")
               }
+              
               },
               error: function (res){
-                console.log(res);
+                console.log(res); 
               }
            });
     });

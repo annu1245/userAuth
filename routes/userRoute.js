@@ -12,19 +12,28 @@ userRoute.get('/register', (req,res) => {
 
 
 userRoute.post('/user/register', async(req,res) => {
-    User.findOne({emailId : req.body.uemailId}, (err, user) => {
-        if (user != null){
-            return res.send({status : 1});
-        }
-    })
-    var user = new User({
-        name : req.body.uname,
-        emailId : req.body.uemailId,
-        password : req.body.upassword,
-    })
 
     try {
+        // Get user input
+        const { name, emailId, password } = req.body; 
+    
+        // Validate user input
+        if (!(emailId && password && name)) {
+          return res.status(200).send({state : 0}); 
+        }
+        const oldUser = await User.findOne({ emailId });
+
+        if (oldUser) {
+          return res.status(200).send({state : 1});
+        }
+
+        var user = await new User({
+            name, 
+            emailId,
+            password,
+        })
         const userData = await user.save();
+
         mytoken = userData.token
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -46,8 +55,10 @@ userRoute.post('/user/register', async(req,res) => {
                     console.log(error);
                 }
                 console.log(response);
-                return res.send({status : 0});
+                return res.send({state : 2}); 
             });
+
+       
     } catch (error) {
         console.log(error)
     }
@@ -69,20 +80,49 @@ userRoute.get('/login', (req,res) => {
     res.render("login");
 })
 
-userRoute.post('/user/login', (req,res) => {
-    User.findOne({emailId : req.body.uemailId}, (err,user) => {
-        if (user === null){
-           return res.send({status : 1})
+userRoute.post('/user/login', async (req,res) => {
+    try {
+        const {emailId, password} = req.body;
+        if (!(emailId && password)){
+            return res.status(200).send({status : 0});
         }
-        if (user.password === req.body.upassword){
+
+        const validUser = await User.findOne({emailId, password});
+
+        if (validUser == null){
+            return res.status(200).send({status : 1});            
+        }
+
+        if (validUser.isValid) {
             session = req.session;
-            session.userid = req.body.uemailId;
-            res.redirect('/');
+            session.userid = emailId;
+            return res.send({status : 3})
         }
         else{
-            return res.send({status : 1})
+            return res.status(200).send({status : 2})
         }
-    })
+        console.log(validUser.isValid);
+
+
+    } catch (error) {
+        console.log(error)
+    }
+    
+
+    
+    // User.findOne({emailId : req.body.uemailId}, (err,user) => {
+    //     if (user === null){
+    //        return res.send({status : 1})
+    //     }
+    //     if (user.password === req.body.upassword){
+    //         session = req.session;
+    //         session.userid = req.body.uemailId;
+    //         res.redirect('/');
+    //     }
+    //     else{
+    //         return res.send({status : 1})
+    //     }
+    // })
 })
 
 userRoute.get('/', (req,res) => {
