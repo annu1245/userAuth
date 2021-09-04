@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./layouts/head')%>
+</head>
+<body>
+    <div class="container col-6 mt-5">
+      <div class="alert alert-danger" id="errorMessage" role="alert">
+        Invalid email id or password
+      </div>   
+      <form action="/user/login" method="POST" id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-control" name="uemailId">
+
+      </div>
+      <div class="mb-3">
+        <label  class="form-label">Password</label>
+        <input type="password" class="form-control" name="upassword" required>
+
+      </div>
+      <input type="submit" class="btn btn-primary" value="submit"/>
+    </form>
+    </div>
+
+<script>
+  $('#errorMessage').hide();
+ $(document).ready(function(){
+   $('#loginForm').on('submit', function(e){
+     e.preventDefault();
+
+      const formData = new FormData(this);
+      const entries = formData.entries();
+      const dataa = Object.fromEntries(entries);
+
+      $.ajax({
+        type : 'POST',
+        url : '/user/login',
+        data : dataa,
+        success : function(res){
+          if (res.status == 1){
+            $('#errorMessage').show();
+            setTimeout(function(){
+              $("#errorMessage").fadeOut();
+            },2000);
+          }
+        },
+        error : function(res){
+          console.log(res);
+        }
+      })
+   })
+ })
+</script>
+
+</body>
+</html>
